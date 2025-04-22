@@ -411,7 +411,14 @@ def upload_file():
         slides_text = extract_text_from_ppt(ppt_path)
         if not slides_text:
             return "No text extracted from PPT", 400
+
+        if character == "doraemon":
+            msg = "Hi, I'm Doraemon. Let's start the presentation!"
+        elif character == "chotta_bheem":
+            msg = "Hi, I'm Chotta Bheem. Let's start the presentation!"
+
         full_text = " ".join(slides_text)
+        full_text = f"{msg} {full_text}"
 
         audio_path = os.path.join(UPLOAD_FOLDER, f"{video_id}_audio.mp3")
         if not text_to_audio(full_text, audio_path):
@@ -420,6 +427,8 @@ def upload_file():
         video_path = os.path.join(VIDEO_OUTPUT_FOLDER, f"{video_id}.mp4")
         if character == "doraemon":
             generate_doraemon_video(audio_path, video_path)
+        # elif character == "chotta_bheem":
+        # generate_static_video(audio_path, video_path)
         else:
             return "Unsupported character", 400
 
