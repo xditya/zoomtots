@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload & Character Selection</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        background: var(--body-color);
+        font-family: var(--body-font);
+      }
+      .navbar {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        align-items: center;
+      }
+      .navbar img {
+        width: 50px;
+        height: auto;
+        margin-right: 10px;
+      }
+      .navbar h2 {
+        color: var(--title-color);
+        font-size: 1.5rem;
+      }
+      .account-menu {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+      }
+      .account-menu button {
+        background-color: var(--first-color);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        font-size: 1rem;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background 0.3s;
+      }
+      .account-menu button:hover {
+        background-color: var(--first-color-alt);
+      }
+      .menu {
+        display: none;
+        background: var(--container-color);
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 150px;
+      }
+      .account-menu:hover .menu {
+        display: block;
+      }
+      .menu p {
+        padding: 8px 16px;
+        margin: 0;
+      }
+      .menu a {
+        text-decoration: none;
+        color: black;
+      }
+      .container {
+        text-align: center;
+        padding: 50px;
+        color: var(--title-color);
+      }
+      .upload-section {
+        max-width: 500px;
+        margin: 0 auto 30px;
+      }
+      .upload-box {
+        display: block;
+        border: 2px dashed var(--first-color);
+        padding: 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.3s;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--text-color);
+        background: rgba(255, 255, 255, 0.1);
+        text-align: center;
+      }
+      .upload-box:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .upload-box input {
+        display: none;
+      }
+      .file-name {
+        margin-top: 10px;
+        font-size: 1rem;
+        color: var(--text-color);
+      }
+      .characters {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .character-card {
+        width: 180px;
+        background: var(--container-color);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        position: relative;
+      }
+      .character-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+      }
+      .character-card img {
+        width: 100%;
+        border-radius: 10px;
+      }
+      .character-card p {
+        margin-top: 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: var(--title-color);
+      }
+      .selected {
+        border: 3px solid var(--first-color);
+        box-shadow: 0 0 15px var(--first-color);
+      }
+      .selected::after {
+        content: "\2713";
+        font-size: 2rem;
+        color: var(--first-color);
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-weight: bold;
+      }
+      .button {
+        display: inline-block;
+        padding: 15px 25px;
+        background: var(--first-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background 0.3s, transform 0.2s;
+        margin-top: 20px;
+        pointer-events: auto;
+        opacity: 1;
+      }
+      .button:hover {
+        background: var(--first-color-alt);
+        transform: scale(1.1);
+      }
+      .button:disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      /* Loading Modal Styles */
+      .loading-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .loading-content {
+        background: var(--container-color);
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        width: 80%;
+        max-width: 500px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .loading-content h2 {
+        color: var(--title-color);
+        margin-bottom: 20px;
+      }
+
+      .progress-container {
+        width: 100%;
+        height: 20px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: var(--first-color);
+        border-radius: 10px;
+        transition: width 0.3s ease;
+      }
+
+      .loading-status {
+        color: var(--text-color);
+        margin-top: 15px;
+        font-size: 1.1rem;
+      }
+
+      .loading-steps {
+        text-align: left;
+        margin-top: 20px;
+        color: var(--text-color);
+      }
+
+      .loading-step {
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+      }
+
+      .loading-step.completed {
+        color: var(--first-color);
+      }
+
+      .loading-step i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <img
+        src="{{ url_for('static', filename='img/logo.png') }}"
+        alt="ZoomTots Logo"
+      />
+      <h2>ZoomTots</h2>
+    </div>
+
+    <div class="account-menu">
+      <button class="button" id="accountBtn">My Account</button>
+      <div class="menu" id="accountMenu">
+        <p><a href="{{ url_for('dashboard') }}">Home</a></p>
+        <p><a href="{{ url_for('index') }}">Logout</a></p>
+      </div>
+    </div>
+
+    <div class="container">
+      <h1>Upload Your PPT & Choose a Character</h1>
+      <p>
+        Upload your PowerPoint presentation (.pptx) and select an animated
+        character to narrate it!
+      </p>
+
+      <form id="uploadForm" enctype="multipart/form-data">
+        <div class="upload-section">
+          <label for="pptFile" class="upload-box" id="uploadBox">
+            Click here to upload your PPT file
+            <input type="file" name="file" id="pptFile" accept=".pptx" />
+          </label>
+          <p class="file-name" id="fileName">No file selected</p>
+        </div>
+
+        <h2>Select Your Animated Instructor</h2>
+        <div class="characters">
+          <div class="character-card selected" data-char="chotta">
+            <img
+              src="{{ url_for('static', filename='img/chotta.png') }}"
+              alt="Chotta Bheem"
+            />
+            <p>Chotta Bheem</p>
+          </div>
+          <div class="character-card" data-char="doraemon">
+            <img
+              src="{{ url_for('static', filename='img/doremon.png') }}"
+              alt="Doremon"
+            />
+            <p>Doremon</p>
+          </div>
+          <div class="character-card" data-char="dora">
+            <img
+              src="{{ url_for('static', filename='img/dora.png') }}"
+              alt="Dora"
+            />
+            <p>Dora</p>
+          </div>
+          <div class="character-card" data-char="Mr Bean">
+            <img
+              src="{{ url_for('static', filename='img/Mrbean.png') }}"
+              alt="Mr Bean"
+            />
+            <p>Mr Bean</p>
+          </div>
+        </div>
+
+        <button type="submit" class="button" id="generateVideoBtn" disabled>
+          Generate Video
+        </button>
+      </form>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="loading-modal" id="loadingModal">
+      <div class="loading-content">
+        <h2>Generating Your Video</h2>
+        <div class="progress-container">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <p class="loading-status" id="loadingStatus">Initializing...</p>
+        <div class="loading-steps">
+          <div class="loading-step" id="step1">
+            <i>⏳</i> Extracting text from presentation
+          </div>
+          <div class="loading-step" id="step2">
+            <i>⏳</i> Converting text to speech
+          </div>
+          <div class="loading-step" id="step3">
+            <i>⏳</i> Generating animated video
+          </div>
+          <div class="loading-step" id="step4"><i>⏳</i> Finalizing video</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // Account menu toggle
+        $("#accountBtn").click(function (e) {
+          e.stopPropagation();
+          $("#accountMenu").toggle();
+        });
+
+        // Close menu when clicking outside
+        $(document).click(function (e) {
+          if (!$(e.target).closest(".account-menu").length) {
+            $("#accountMenu").hide();
+          }
+        });
+
+        // File input change handler
+        $("#pptFile").change(function (e) {
+          e.stopPropagation();
+          const fileName = this.files[0]
+            ? this.files[0].name
+            : "No file selected";
+          $("#fileName").text(fileName);
+          $("#generateVideoBtn").prop("disabled", !this.files.length);
+        });
+
+        // Character selection
+        $(".character-card").click(function (e) {
+          e.preventDefault();
+          $(".character-card").removeClass("selected");
+          $(this).addClass("selected");
+        });
+
+        // Form submission
+        $("#uploadForm").submit(function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const selectedChar = $(".character-card.selected").data("char");
+          formData.append("character", selectedChar);
+
+          $("#generateVideoBtn").prop("disabled", true).text("Generating...");
+
+          // Show loading modal
+          $("#loadingModal").css("display", "flex");
+
+          // Simulate progress steps
+          let progress = 0;
+          const progressInterval = setInterval(() => {
+            if (progress < 90) {
+              progress += Math.random() * 10;
+              if (progress > 90) progress = 90;
+              $("#progressBar").css("width", progress + "%");
+
+              // Update steps based on progress
+              if (progress > 25) {
+                $("#step1").addClass("completed").find("i").text("✅");
+              }
+              if (progress > 50) {
+                $("#step2").addClass("completed").find("i").text("✅");
+              }
+              if (progress > 75) {
+                $("#step3").addClass("completed").find("i").text("✅");
+              }
+            }
+          }, 1000);
+
+          $.ajax({
+            url: "/upload",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+              // Complete the progress
+              clearInterval(progressInterval);
+              $("#progressBar").css("width", "100%");
+              $("#step4").addClass("completed").find("i").text("✅");
+              $("#loadingStatus").text(
+                "Video generated successfully! Redirecting..."
+              );
+
+              // Get the video ID from the response URL
+              const videoId = response.split("/").pop();
+              const videoUrl = `/video/${videoId}`;
+
+              // Redirect after a short delay
+              setTimeout(() => {
+                window.location.href = videoUrl;
+              }, 1000);
+            },
+            error: function (xhr, status, error) {
+              clearInterval(progressInterval);
+              $("#loadingModal").hide();
+              console.error("Error:", xhr.responseText, status, error);
+              alert("Error generating video: " + xhr.responseText);
+              $("#generateVideoBtn")
+                .prop("disabled", false)
+                .text("Generate Video");
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

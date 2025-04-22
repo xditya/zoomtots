@@ -1,0 +1,6 @@
+venv/
+*__pycache__
+*test*.py
+
+generated_image.png
+scenario.mp3
