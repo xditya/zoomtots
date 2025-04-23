@@ -4,3 +4,7 @@ venv/
 
 generated_image.png
 scenario.mp3
+static/videos/
+uploads/
+
+*.mp4
