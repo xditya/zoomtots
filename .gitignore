@@ -8,3 +8,4 @@ static/videos/
 uploads/
 
 *.mp4
+.env

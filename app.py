@@ -200,7 +200,7 @@ def upload_file():
         full_text = f"{msg} {full_text}"
 
         audio_path = os.path.join(UPLOAD_FOLDER, f"{video_id}_audio.mp3")
-        if not text_to_audio(full_text, audio_path):
+        if not text_to_audio(full_text, audio_path, character):
             return "Failed to generate audio", 500
 
         video_path = os.path.join(VIDEO_OUTPUT_FOLDER, f"{video_id}.mp4")
